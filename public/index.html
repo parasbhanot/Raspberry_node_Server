@@ -1,0 +1,115 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Arduino Node</title>
+</head>
+
+<body>
+<h1>Basic Raspberry bar graph +button</h1>
+
+<form id="form1" name="form1" method="post">
+    <p>
+        <label> Send data :</label>
+        <input type="text" name="yourName" id="yourName">
+    </p>
+    <p>
+        <input type="button" name="submit" id="submit" value="Submit">
+    </p>
+</form>
+<canvas id="myCanvas" width=270 height = 400 ></canvas>
+
+<p id="printData"> </p>
+
+<script src="/socket.io/socket.io.js"></script>
+
+<script src="Chart.js"></script>
+
+<style type="text/css">
+    canvas{
+        background-image: url("bulb4.png");
+        background-repeat:no-repeat;
+        background-position: 50% 50%;
+    }
+</style>
+
+<script type="text/javascript">
+
+
+        var even = 0;
+        var i =90;
+        var canvas = document.getElementById('myCanvas');
+        var ctx = canvas.getContext('2d');
+
+        var pata = {
+            labels: ["data"],
+            datasets: [
+                {
+                    label: "My First dataset",
+                    fillColor: "rgba(143,215,230,0.5)",
+                    strokeColor: "rgba(220,220,220,0.2)",
+                    highlightFill: "rgba(255,22,84,0.5)",
+                    highlightStroke: "rgba(220,220,220,1)",
+                    data: [i]
+                }
+
+            ]
+        };
+
+        var options = {
+            scaleOverride: true,
+            //showScale: false,
+            scaleSteps: 20,
+            scaleStepWidth:5,
+            scaleStartValue: 0,
+            // scaleShowLabels: true,
+            scaleIntegersOnly: true,
+            scaleShowGridLines : false,
+
+        }
+
+        var myBarChart = new Chart(ctx).Bar(pata ,options);
+
+        canvas.onclick = function(evt){
+
+            even++;
+            if (even % 2==0){
+
+                socket.emit("chat",{message: 'p'} );
+            }
+
+            else {
+
+                socket.emit("chat",{message: 'u'} );
+            }
+        }
+
+
+
+    document.getElementById("submit").onclick = function (){
+        var a = document.getElementById("yourName").value;
+        console.log(a);
+        socket.emit("chat",{message: a} );
+    }
+
+    var socket = io();
+    var printData = document.getElementById("printData");
+
+    socket.on('received', function  (data) {
+        //console.log(data.message);
+        document.getElementById("printData").innerHTML = data.message;
+//        var node = document.createTextNode(data.message);
+//        var linebreak = document.createElement('br');
+//        printData.appendChild(node);
+//        printData.appendChild(linebreak);
+
+        pata.datasets[0].data[0]=data.message;
+        myBarChart.destroy();
+        myBarChart = new Chart(ctx).Bar(pata ,options);
+
+    });
+
+</script>
+
+</body>
+</html>
